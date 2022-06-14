@@ -1,0 +1,1174 @@
+global
+function math(context) {
+return context.scopes.some(s => s.startsWith("meta.math"));
+}
+
+// generate matrix
+
+function gen_matrix(snip, nrow, ncol) {
+    let results = "\n";
+    let order = 1;
+    for (var i=0; i<nrow; i++){
+        results += "\t";
+        for(var j = 0;j <ncol;j++){
+            results += `${snip.tabstop(order)}`;
+            if (j == ncol - 1 ){
+                if ( i < nrow - 1 ) {
+                    results += "\n\t\\\\\\";
+                }
+            } else {
+                results += " & ";
+            }
+            order ++;
+        }
+        results += "\n";
+    }
+    return results;
+}
+endglobal
+
+# Notation ---------------------------------------------------------------------
+# Most commands will start with //
+# Math commands will start with /
+# Greek letter commands will start with ./
+
+# Environments -----------------------------------------------------------------
+# For Starred Environments, s will be added on
+# For labelled Environments, l will be added on
+snippet `//cen` "Center Environment" A
+\\begin{center}
+    $0
+\\end{center}
+endsnippet
+
+snippet `(s)?//fig` "Figure Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{figure}[${snip.tabstop(1, "Placement")}]`;
+} else {
+    env += `\\begin{figure*}[${snip.tabstop(1, "Placement")}]`;
+}
+env += `\n\t\\centering`;
+env += `\n\t\\includegraphics[ width = ${snip.tabstop(2)}\\linewidth ]{${snip.tabstop(3, "Figure Path")}}`;
+env += `\n\t\\caption{${snip.tabstop(4)}}`;
+env += `\n\t\\label{fig:${snip.tabstop(5)}}`;
+if ( m[1] == undefined ) {
+    env += `\n\\end{figure}`;
+} else {
+    env += `\n\\end{figure*}`;
+}
+rv = env
+``
+endsnippet
+
+snippet `(s)?//eqn` "Equation Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{equation}`;
+} else {
+    env += `\\begin{equation*}`;
+}
+env += `\n\t${snip.tabstop(0)}`;
+if ( m[1] == undefined ) {
+    env += `\n\t\\label{eqn:}`;
+    env += `\n\\end{equation}`;
+} else {
+    env += `\n\\end{equation*}`;
+}
+rv = env
+``
+endsnippet
+
+snippet `(at)?//ald` "Aligned Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{aligned}`;
+} else {
+    env += `\\begin{alignedat}{${snip.tabstop(1, "Number of Columns")}}`;
+}
+env += `\n\t${snip.tabstop(0)}`;
+if ( m[1] == undefined ) {
+    env += `\n\\end{aligned}`;
+} else {
+    env += `\n\\end{alignedat}`;
+}
+rv = env
+``
+endsnippet
+
+snippet `(a)?//enu` "Enumerate Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{enumerate}`;
+} else {
+    env += `\\begin{enumerate}[label = (\\alph*)]`;
+}
+env += `\n\t\\item ${snip.tabstop(0)}`;
+env += `\n\\end{enumerate}`;
+rv = env
+``
+endsnippet
+
+snippet `//itm` "Itemized Environment" A 
+\\begin{itemize}
+    \\item $0
+\\end{itemize}
+endsnippet
+
+snippet `//cas` "Cases Environment" A 
+\\begin{cases} 
+    $0
+\\end{cases}
+endsnippet
+
+snippet `(p|b|v|V)?([1-9])([1-9])//mat` "Matrix Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{matrix}`;
+} else {
+    env += `\\begin{` + m[1] + `matrix}`;
+}
+env += gen_matrix(snip, m[2],m[3]);
+// env += `\n\t${snip.tabstop(0)}`;
+if ( m[1] == undefined ) {
+    env += `\\end{matrix}`;
+} else {
+    env += `\\end{` + m[1] + `matrix}`;
+}
+rv = env
+``
+endsnippet
+
+# This environment is only used when we are using the Beamer package 
+snippet //fme "Frame Environment" A
+\\begin{frame}
+    \\frametitle{$1}
+    $0
+\\end{frame}
+endsnippet
+
+snippet `(cd)?//tikz` "Tikz Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{tikzpicture}`;
+} else {
+    env += `\\begin{tikzcd}[ row sep = ${snip.tabstop(1, "normal")}, column sep = ${snip.tabstop(2, "normal")} ]`;
+}
+env += `\n\t${snip.tabstop(0)}`;
+if ( m[1] == undefined ) {
+    env += `\n\\end{tikzpicture}`;
+} else {
+    env += `\n\\end{tikzcd}`;
+}
+rv = env
+``
+endsnippet
+
+# Custom Environments ----------------------------------------------------------
+snippet //col "Column Environment" A
+\\begin{newColumn}
+    $0
+\\end{newColumn}
+endsnippet 
+
+snippet `(s|l|sl)?//ttl` "titleBox Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{titleBox}{${snip.tabstop(1, "Title")}}{${snip.tabstop(2, "Description")}}`;
+} else if ( m[1] == "s" ) {
+    env += `\\begin{titleBox}*{${snip.tabstop(1, "Title")}}{${snip.tabstop(2, "Description")}}`;
+} else if ( m[1] == "l" ) {
+    env += `\\begin{titleBox}{${snip.tabstop(1, "Title")}}{${snip.tabstop(2, "Description")}}[${snip.tabstop(3, "Label")}]`;
+} else {
+    env += `\\begin{titleBox}*{${snip.tabstop(1, "Title")}}{${snip.tabstop(2, "Description")}}[${snip.tabstop(3, "Label")}]`;
+}
+env += `\n\t${snip.tabstop(0)}`;
+env += `\n\\end{titleBox}`;
+rv = env
+``
+endsnippet
+
+snippet `(s)?//(thm|lem|prp|cor)` "Theorem Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    if ( m[2] == "thm" ) {
+        env += `\\begin{thmBox}{${snip.tabstop(1)}}[thm:${snip.tabstop(2)}]`;
+    } else if ( m[2] == "lem" ) {
+        env += `\\begin{thmBox}[Lemma]{${snip.tabstop(1)}}[lem:${snip.tabstop(2)}]`;
+    } else if ( m[2] == "prp" ) {
+        env += `\\begin{thmBox}[Proposition]{${snip.tabstop(1)}}[prp:${snip.tabstop(2)}]`;
+    } else {
+        env += `\\begin{thmBox}[Corollary]{${snip.tabstop(1)}}[cor:${snip.tabstop(2)}]`;
+    }
+} else {
+    if ( m[2] == "thm" ) {
+        env += `\\begin{thmBox}*{${snip.tabstop(1)}}[thm:${snip.tabstop(2)}]`;
+    } else if ( m[2] == "lem" ) {
+        env += `\\begin{thmBox}*[Lemma]{${snip.tabstop(1)}}[lem:${snip.tabstop(2)}]`;
+    } else if ( m[2] == "prp" ) {
+        env += `\\begin{thmBox}*[Proposition]{${snip.tabstop(1)}}[prp:${snip.tabstop(2)}]`;
+    } else {
+            env += `\\begin{thmBox}*[Corollary]{${snip.tabstop(1)}}[cor:${snip.tabstop(2)}]`;
+    }
+}
+env += `\n\t${snip.tabstop(0)}`;
+env += `\n\n\t\\baseRule`;
+env += `\n\n\t\\begin{proofBox}`;
+env += `\n\n\t\\end{proofBox}`;
+env += `\n\\end{thmBox}`;
+rv = env
+``
+endsnippet
+
+snippet `(s)?//def` "Definition Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{defBox}{${snip.tabstop(1)}}[def:${snip.tabstop(2)}]`;
+} else {
+    env += `\\begin{defBox}*{${snip.tabstop(1)}}[def:${snip.tabstop(2)}]`;
+}
+env += `\n\t${snip.tabstop(0)}`;
+env += `\n\\end{defBox}`;
+rv = env
+``
+endsnippet
+
+snippet `(s)?//eg` "Example Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{egBox}{${snip.tabstop(1)}}[eg:${snip.tabstop(2)}]`;
+} else {
+    env += `\\begin{egBox}*{${snip.tabstop(1)}}[eg:${snip.tabstop(2)}]`;
+}
+env += `\n\t${snip.tabstop(0)}`;
+env += `\n\\end{egBox}`;
+rv = env
+``
+endsnippet
+
+snippet `(s)?//rem` "Remark Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{remarkBox}{${snip.tabstop(1)}}`;
+} else {
+    env += `\\begin{remarkBox}*{${snip.tabstop(1)}}`;
+}
+env += `\n\t${snip.tabstop(0)}`;
+env += `\n\\end{remarkBox}`;
+rv = env
+``
+endsnippet
+
+snippet `(s)?//qb` "Question Box Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{qBox}{${snip.tabstop(1)}}`;
+} else {
+    env += `\\begin{qBox}*{${snip.tabstop(1)}}`;
+}
+env += `\n\t${snip.tabstop(0)}`;
+env += `\n\n\t\\tcblower`;
+env += `\n\n\n\\end{qBox}`;
+rv = env
+``
+endsnippet
+
+snippet `(s)?//qp` "Question Part Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{qPart}{${snip.tabstop(1)}}`;
+} else {
+    env += `\\begin{qPart}*{${snip.tabstop(1)}}`;
+}
+env += `\n\t${snip.tabstop(0)}`;
+env += `\n\\end{qPart}`;
+rv = env
+``
+endsnippet
+
+# Math Commands ----------------------------------------------------------------
+# These snippets will always start with /
+# Vertically Spaced variants will include v
+# Horizontally Spaced variants will include h
+# Dynamic variants will include d 
+
+snippet `(v)?/mm` "Math Mode" A
+``
+if ( m[1] == undefined ) {
+    rv = `\\( ${snip.tabstop(1)} \\)${snip.tabstop(0)}`;
+} else {
+    rv = `\\(\n\t${snip.tabstop(1)}\n\\)${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `/fun` "Function" A
+$1: $2 \rightarrow $3
+endsnippet
+
+snippet `(v)?/stk` "Substack" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\substack{ ${snip.tabstop(1)} }${snip.tabstop(0)}`;
+} else {
+    rv = `\\substack{\n\t${snip.tabstop(1)}\n}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|t|d|vd|vt)?/fc` "Fraction" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\frac{ ${snip.tabstop(1)} }{ ${snip.tabstop(2)} }${snip.tabstop(0)}`;
+} else if ( m[1] == "t" ) {
+    rv = `\\tfrac{ ${snip.tabstop(1)} }{ ${snip.tabstop(2)} }${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\dfrac{ ${snip.tabstop(1)} }{ ${snip.tabstop(2)} }${snip.tabstop(0)}`;
+} else if ( m[1] == "vt" ) {
+    rv = `\\tfrac{\n\t${snip.tabstop(1)}\n}{\n\t${snip.tabstop(2)}\n}${snip.tabstop(0)}`;
+} else if ( m[1] == "vd" ) {
+    rv = `\\dfrac{\n\t${snip.tabstop(1)}\n}{\n\t${snip.tabstop(2)}\n}${snip.tabstop(0)}`;
+} else {
+    rv = `\\frac{\n\t${snip.tabstop(1)}\n}{\n\t${snip.tabstop(2)}\n}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `/bs` "Math Bold Symbol" A
+\\boldsymbol{$1}$0
+endsnippet
+
+snippet `(l|m|r|b)?/mte` "Math Text" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\mathrm{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else if ( m[1] == "l" ) {
+    rv = `\\mathrm{${snip.tabstop(1)}} \\quad ${snip.tabstop(0)}`;
+} else if ( m[1] == "m" ) {
+    rv = `\\quad \\mathrm{${snip.tabstop(1)}} \\quad ${snip.tabstop(0)}`;
+} else if ( m[1] == "r" ) {
+    rv = `\\quad \\mathrm{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else {
+    rv = `\\mathbf{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `([a-zA-Z])?/bb` "BlackBoard" A
+``
+if ( m[1] == undefined ) {
+    rv = `\\mathbb{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else {
+    rv = `\\mathbb{${m[1]}}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `([a-zA-Z])?/sf` "Math San Serif" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\mathsf{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else {
+    rv = `\\mathsf{${m[1]}}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `([a-zA-Z])?/cal` "Math Calligraphic" A
+``
+if ( m[1] == undefined ) {
+    rv = `\\mathcal{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else {
+    rv = `\\mathcal{${m[1]}}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `([a-zA-Z])?/scr` "Math Script" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\mathscr{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else {
+    rv = `\\mathscr{${m[1]}}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `([a-zA-Z])?/frak` "Math Frak" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\mathfrak{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else {
+    rv = `\\mathfrak{${m[1]}}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet /par "Partial Symbol" A 
+\\partial
+endsnippet 
+
+snippet `(p)?([1-9]|n)?/dif` "Derivative" A 
+``
+if ( m[1] == undefined ) {
+    if ( m[2] == undefined ) {
+        rv = `\\frac{ d ${snip.tabstop(1)} }{ d ${snip.tabstop(2)} }${snip.tabstop(0)}`;
+    } else if ( m[2] == "n" ) {
+        rv = `\\frac{ d^{ ${snip.tabstop(1)} } ${snip.tabstop(2)} }{ d ${snip.tabstop(3)}^{ ${snip.tabstop(1)} } }${snip.tabstop(0)}`;
+    } else {
+        rv = `\\frac{ d^{ ${m[2]} } ${snip.tabstop(1)} }{ d ${snip.tabstop(2)}^{ ${m[2]} } }${snip.tabstop(0)}`;
+    }
+} else {
+    if ( m[2] == undefined ) {
+        rv = `\\frac{ \\partial ${snip.tabstop(1)} }{ \\partial ${snip.tabstop(2)} }${snip.tabstop(0)}`;
+    } else if ( m[2] == "n" ) {
+        rv = `\\frac{ \\partial^{ ${snip.tabstop(1)} } ${snip.tabstop(2)} }{ \\partial ${snip.tabstop(3)}^{ ${snip.tabstop(1)} } }${snip.tabstop(0)}`;
+    } else {
+        rv = `\\frac{ \\partial^{ ${m[2]} } ${snip.tabstop(1)} }{ \\partial ${snip.tabstop(2)}^{ ${m[2]} } }${snip.tabstop(0)}`;
+    }
+}
+``
+endsnippet
+
+snippet /pre "Prescript" A
+{}_{ $1 }$0
+endsnippet
+
+snippet `(h)?/si` "SI Unit" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\si{ ${snip.tabstop(1)} }${snip.tabstop(0)}`;
+} else {
+    rv = `\\ \\si{ ${snip.tabstop(1)} }${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet /dot "Dot" A 
+\\dot{ $1 }$0
+endsnippet
+
+snippet /ddot "Double Dot" A 
+\\ddot{ $1 }$0
+endsnippet
+
+snippet `(h)?/hat` "Hat" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\hat{ ${snip.tabstop(1)} }${snip.tabstop(0)}`;
+} else {
+    rv = `\\ \\hat{ ${snip.tabstop(1)} }${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v)?/dsp` "DisplayStyle" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\displaystyle{ ${snip.tabstop(1)} }${snip.tabstop(0)}`;
+} else {
+    rv = `\\displaystyle{\n\t${snip.tabstop(1)}\n}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v)?([1-9]|n)?/rt` "Root" A 
+``
+if ( m[1] == undefined ) {
+    if ( m[2] == undefined ) {
+        rv = `\\sqrt{ ${snip.tabstop(1)} }${snip.tabstop(0)}`;
+    } else if ( m[2] == "n" ) {
+        rv = `\\sqrt[ ${snip.tabstop(1)} ]{ ${snip.tabstop(2)} }${snip.tabstop(0)}`;
+    } else {
+        rv = `\\sqrt[ ${m[2]} ]{ ${snip.tabstop(1)} }${snip.tabstop(0)}`;
+    }
+} else {
+    if ( m[2] == undefined ) {
+        rv = `\\sqrt{\n\t${snip.tabstop(1)}\n}${snip.tabstop(0)}`;
+    } else if ( m[2] == "n" ) {
+        rv = `\\sqrt[ ${snip.tabstop(1)} ]{\n\t${snip.tabstop(2)}\n}${snip.tabstop(0)}`;
+    } else {
+        rv = `\\sqrt[ ${m[2]} ]{\n\t${snip.tabstop(1)}\n}${snip.tabstop(0)}`;
+    }
+}
+``
+endsnippet
+
+snippet `(b)?/cup` "Cup" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\cup`;
+} else {
+    rv = `\\bigcup`;
+}
+``
+endsnippet
+
+snippet `(b)?/cap` "Cap" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\cap`;
+} else {
+    rv = `\\bigcap`;
+}
+``
+endsnippet
+
+
+snippet `(v)?/ubc` "Underbrace" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\underbrace{ ${snip.tabstop(1)} }_{ ${snip.tabstop(2)} }${snip.tabstop(0)}`;
+} else {
+    rv = `\\underbrace{\n\t${snip.tabstop(1)}\n}_{\n\t${snip.tabstop(2)}\n}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet /bar "Bar" A 
+\\bar{ $1 }$0
+endsnippet
+
+snippet `(v)?/ol` "Overline" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\overline{ ${snip.tabstop(1)} }${snip.tabstop(0)}`;
+} else {
+    rv = `\\overline{\n\t${snip.tabstop(1)}\n}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(r|l)?/arw` "Arrows" A 
+``
+if ( m[1] == undefined ) {
+     rv = 
+     `\\arrow[ ${snip.tabstop(1)}, "${snip.tabstop(2)}" ]${snip.tabstop(0)}`;
+} else if ( m[1] == "r" ) {
+    rv = `\\rightarrow`;
+} else {
+    rv = `\\leftarrow`;
+}
+``
+endsnippet
+
+snippet `(l)?/imp` "Implies" A 
+``
+if ( m[1] == undefined ) {
+     rv = `\\implies`;
+} else {
+    rv = `\\impliedby`;
+}
+``
+endsnippet
+
+snippet /es "Empty Set" A 
+\\emptyset
+endsnippet
+
+snippet /com "Minus Set/Complement" A
+\\setminus
+endsnippet
+
+snippet `(c|cup|cap)?/lst` "List of Elements" A
+``
+if ( m[1] == undefined ) {
+     rv = 
+     `${snip.tabstop(1)} \\ldots ${snip.tabstop(1)} ${snip.tabstop(0)}`;
+} else if ( m[1] == "c" ) {
+    rv = `, \\ldots , `;
+} else if ( m[1] == "cup" ) {
+    rv = `\\cup \\ldots \\cup `;
+} else {
+    rv = `\\cap \\ldots \\cap `;
+}
+``
+endsnippet 
+
+snippet ^^ "Superscript" iA 
+^{ $1 }$0
+endsnippet
+
+snippet __ "Subscript" iA 
+_{ $1 }$0
+endsnippet
+
+snippet _^ "Bounds" iA 
+_{ $1 }^{ $2 }$0
+endsnippet
+
+snippet /inv "Inverse" A
+$1^{ -1 }$0
+endsnippet
+
+snippet /cir "Circle" A
+\circ
+endsnippet
+
+snippet /tim "Times" A
+\times
+endsnippet
+
+snippet ;star "Star" A
+\star
+endsnippet
+
+snippet /prod "Product" A
+\prod
+endsnippet
+
+snippet /int "Integral" A 
+\int
+endsnippet
+
+snippet /sum "Summand" A 
+\sum
+endsnippet
+
+snippet `(e|p|ep)?/sst` "Subset" A 
+``
+if ( m[1] == undefined ) {
+     rv = 
+     `\\subset`;
+} else if ( m[1] == "e" ) {
+    rv = `\\subseteq`;
+} else if ( m[1] == "p" ) {
+    rv = `\\supset`;
+} else {
+    rv = `\\supseteq`;
+}
+``
+endsnippet
+
+snippet `(c|l)?/dts` "Dots" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\dots`;
+} else if ( m[1] == "c" ) {
+    rv = `\\cdots`;
+} else {
+    rv = `\\ldots`
+}
+``
+endsnippet
+
+snippet `(d)?/ver` "Vertical Line" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\vert`;
+} else {
+    rv = `\\middle\\vert`
+}
+``
+endsnippet
+
+snippet `([a-zA-Z])?/vec` "BlackBoard" A
+``
+if ( m[1] == undefined ) {
+    rv = `\\overrightarrow{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else {
+    rv = `\\overrightarrow{${m[1]}}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+# Bracket Commands ------------------------------------------------------------
+
+snippet `(v)?/cb` "Curly Brackets" A 
+``
+if ( m[1] == undefined ) {
+    rv = `{ ${snip.tabstop(1)} }${snip.tabstop(0)}`;
+} else {
+    rv = `{\n\t${snip.tabstop(1)}\n}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/mcb` "Math Curly Brackets" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\{ ${snip.tabstop(1)} \\\\}${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `\\{\n\t${snip.tabstop(1)}\n\\\\}${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left\\{ ${snip.tabstop(1)} \\right\\\\}${snip.tabstop(0)}`;
+} else {
+    rv = `\\left\\{\n\t${snip.tabstop(1)}\n\\right\\\\}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/sb` "Square Brackets" A 
+``
+if ( m[1] == undefined ) {
+    rv = `[ ${snip.tabstop(1)} ]${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `[\n\t${snip.tabstop(1)}\n]${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left[ ${snip.tabstop(1)} \\right]${snip.tabstop(0)}`;
+} else {
+    rv = `\\left[\n\t${snip.tabstop(1)}\n\\right]${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/rb` "Round Brackets" A 
+``
+if ( m[1] == undefined ) {
+    rv = `( ${snip.tabstop(1)} )${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `(\n\t${snip.tabstop(1)}\n)${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left( ${snip.tabstop(1)} \\right)${snip.tabstop(0)}`;
+} else {
+    rv = `\\left(\n\t${snip.tabstop(1)}\n\\right)${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/srb` "Square-Round Brackets" A 
+``
+if ( m[1] == undefined ) {
+    rv = `[ ${snip.tabstop(1)} )${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `[\n\t${snip.tabstop(1)}\n)${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left[ ${snip.tabstop(1)} \\right)${snip.tabstop(0)}`;
+} else {
+    rv = `\\left[\n\t${snip.tabstop(1)}\n\\right)${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/rsb` "Round-Square Brackets" A 
+``
+if ( m[1] == undefined ) {
+    rv = `( ${snip.tabstop(1)} ]${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `(\n\t${snip.tabstop(1)}\n]${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left( ${snip.tabstop(1)} \\right]${snip.tabstop(0)}`;
+} else {
+    rv = `\\left(\n\t${snip.tabstop(1)}\n\\right]${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/ket` "Ket" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\lvert ${snip.tabstop(1)} \\rangle${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `\\lvert\n\t${snip.tabstop(1)}\n\\rangle${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left\\lvert ${snip.tabstop(1)} \\right\\rangle${snip.tabstop(0)}`;
+} else {
+    rv = `\\left\\lvert\n\t${snip.tabstop(1)}\n\\right\\rangle${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/bra` "Bra" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\langle ${snip.tabstop(1)} \\rvert${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `\\langle\n\t${snip.tabstop(1)}\n\\rvert${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left\\langle ${snip.tabstop(1)} \\right\\rvert${snip.tabstop(0)}`;
+} else {
+    rv = `\\left\\langle\n\t${snip.tabstop(1)}\n\\right\\rvert${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/ip` "Inner Product" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\langle ${snip.tabstop(1)} \\rangle${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `\\langle\n\t${snip.tabstop(1)}\n\\rangle${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left\\langle ${snip.tabstop(1)} \\right\\rangle${snip.tabstop(0)}`;
+} else {
+    rv = `\\left\\langle\n\t${snip.tabstop(1)}\n\\right\\rangle${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/bk` "BraKet" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\langle ${snip.tabstop(1)} \\vert ${snip.tabstop(2)} \\rangle${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `\\langle\n\t${snip.tabstop(1)}\n\\vert\n\t${snip.tabstop(2)}\n\\rangle${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left\\langle ${snip.tabstop(1)} \\middle\\vert ${snip.tabstop(2)} \\right\\rangle${snip.tabstop(0)}`;
+} else {
+    rv = `\\left\\langle\n\t${snip.tabstop(1)}\n\\middle\\vert\n\t${snip.tabstop(2)}\n\\right\\rangle${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/abs` "Absolute Value" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\lvert ${snip.tabstop(1)} \\rvert${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `\\lvert\n\t${snip.tabstop(1)}\n\\rvert${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left\\lvert ${snip.tabstop(1)} \\right\\rvert${snip.tabstop(0)}`;
+} else {
+    rv = `\\left\\lvert\n\t${snip.tabstop(1)}\n\\right\\rvert${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/nrm` "Norm" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\lVert ${snip.tabstop(1)} \\rVert${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `\\lVert\n\t${snip.tabstop(1)}\n\\rVert${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left\\lVert ${snip.tabstop(1)} \\right\\rVert${snip.tabstop(0)}`;
+} else {
+    rv = `\\left\\lVert\n\t${snip.tabstop(1)}\n\\right\\rVert${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/flr` "Floor" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\lfloor ${snip.tabstop(1)} \\rfloor${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `\\lfloor\n\t${snip.tabstop(1)}\n\\rfloor${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left\\lfloor ${snip.tabstop(1)} \\right\\rfloor${snip.tabstop(0)}`;
+} else {
+    rv = `\\left\\lfloor\n\t${snip.tabstop(1)}\n\\right\\rfloor${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(v|d|vd)?/cel` "Ceil" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\lceil ${snip.tabstop(1)} \\rceil${snip.tabstop(0)}`;
+} else if ( m[1] == "v" ) {
+    rv = `\\lceil\n\t${snip.tabstop(1)}\n\\rceil${snip.tabstop(0)}`;
+} else if ( m[1] == "d" ) {
+    rv = `\\left\\lceil ${snip.tabstop(1)} \\right\\rceil${snip.tabstop(0)}`;
+} else {
+    rv = `\\left\\lceil\n\t${snip.tabstop(1)}\n\\right\\rceil${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+# General Commands -------------------------------------------------------------
+
+snippet //date "Date" A 
+``rv = new Date().toDateString()``
+endsnippet
+
+snippet //tar "HyperTarget" A 
+\\hypertarget{$1}{$2}$0
+endsnippet
+
+snippet `(fig|eqn|tar)?//ref` "Reference" A 
+``
+if ( m[1] == undefined ) {
+    rv = `(\\ref{${snip.tabstop(1)}})${snip.tabstop(0)}`;
+} else if ( m[1] == "fig" ) {
+    rv = `Figure (\\ref{fig:${snip.tabstop(1)}})${snip.tabstop(0)}`;
+} else if ( m[1] == "eqn" ) {
+    rv = `Equation (\\ref{eqn:${snip.tabstop(1)}})${snip.tabstop(0)}`;
+} else {
+    rv = `[\\hyperlink{${snip.tabstop(1, "Ref_Tag")}}{${snip.tabstop(2, "Caption")}}]${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(d|s)?//qt` "Quotes" A 
+``
+if ( m[1] == undefined || m[1] == "d" ) {
+    rv = `"${snip.tabstop(1)}"${snip.tabstop(0)}`;
+} else {
+    rv = `'${snip.tabstop(1)}'${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet `(b|i|u)?//te` "Text" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\text{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else if ( m[1] == "b" ) {
+    rv = `\\textbf{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else if ( m[1] == "i" ) {
+    rv = `\\textit{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else {
+    rv = `\\ul{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+snippet //bls "BaseLine Skip" A 
+\\baseSkip
+endsnippet
+
+snippet //brl "BaseRule" A 
+\\baseRule
+endsnippet
+
+snippet //icg "Include Graphics" A 
+\\includegraphics[ width = $1\\linewidth ]{${2:figure path}}
+endsnippet
+
+snippet `(v)?//wrb` "WrabBox" A 
+``
+if ( m[1] == undefined ) {
+    rv = `\\wrapBox{${snip.tabstop(1)}}${snip.tabstop(0)}`;
+} else {
+    rv = `\\wrapBox{\n\t${snip.tabstop(1)}\n}${snip.tabstop(0)}`;
+}
+``
+endsnippet
+
+# Greek Alphabet ---------------------------------------------------------------
+#These snippets will always start with ./
+
+snippet ./a "Lowercase Alpha" iA 
+\alpha
+endsnippet 
+
+snippet ./A "Uppercase Alpha" iA 
+\Alpha
+endsnippet 
+
+snippet ./b "Lowercase Beta" iA 
+\beta
+endsnippet 
+
+snippet ./B "Uppercase Beta" iA 
+\Beta
+endsnippet 
+
+snippet ./g "Lowercase Gamma" iA 
+\gamma
+endsnippet 
+
+snippet ./G "Uppercase Gamma" iA 
+\Gamma
+endsnippet 
+
+snippet ./d "Lowercase Delta" iA 
+\delta
+endsnippet 
+
+snippet ./D "Uppercase Delta" iA 
+\Delta
+endsnippet 
+
+snippet ./ep "Lowercase Epsilon" iA 
+\epsilon
+endsnippet 
+
+snippet ./Ep "Uppercase Epsilon" iA 
+\Epsilon
+endsnippet 
+
+snippet ./z "Lowercase Zeta" iA 
+\zeta
+endsnippet 
+
+snippet ./Z "Uppercase Zeta" iA 
+\Zeta
+endsnippet 
+
+snippet ./et "Lowercase Eta" iA 
+\eta
+endsnippet 
+
+snippet ./Et "Uppercase Eta" iA 
+\Eta
+endsnippet 
+
+snippet ./th "Lowercase Theta" iA 
+\theta
+endsnippet 
+
+snippet ./Th "Uppercase Theta" iA 
+\Theta
+endsnippet 
+
+snippet ./i "Lowercase Iota" iA 
+\iota
+endsnippet 
+
+snippet ./I "Uppercase Iota" iA 
+\Iota
+endsnippet 
+
+snippet ./k "Lowercase Kappa" iA 
+\kappa
+endsnippet 
+
+snippet ./K "Uppercase Kappa" iA 
+\Kappa
+endsnippet 
+
+snippet ./l "Lowercase Lambda" iA 
+\lambda
+endsnippet 
+
+snippet ./L "Uppercase Lambda" iA 
+\Lambda
+endsnippet 
+
+snippet ./m "Lowercase Mu" iA 
+\mu
+endsnippet 
+
+snippet ./M "Uppercase Mu" iA 
+\Mu
+endsnippet 
+
+snippet ./n "Lowercase Nu" iA 
+\nu
+endsnippet 
+
+snippet ./N "Uppercase Nu" iA 
+\Nu
+endsnippet 
+
+snippet ./x "Lowercase Xi" iA 
+\xi
+endsnippet 
+
+snippet ./X "Uppercase Xi" iA 
+\Xi
+endsnippet 
+
+snippet ./omi "Lowercase Omicron" iA 
+\omicron
+endsnippet 
+
+snippet ./Omi "Uppercase Omicron" iA 
+\Omicron
+endsnippet 
+
+snippet ./pi "Lowercase Pi" iA 
+\pi
+endsnippet 
+
+snippet ./Pi "Uppercase Pi" iA 
+\Pi
+endsnippet 
+
+snippet ./r "Lowercase Rho" iA 
+\rho
+endsnippet 
+
+snippet ./R "Uppercase Rho" iA 
+\Rho
+endsnippet 
+
+snippet ./s "Lowercase Sigma" iA 
+\sigma
+endsnippet 
+
+snippet ./S "Uppercase Sigma" iA 
+\Sigma
+endsnippet 
+
+snippet ./ta "Lowercase Tau" iA 
+\tau
+endsnippet 
+
+snippet ./Ta "Uppercase Tau" iA 
+\Tau
+endsnippet
+
+snippet ./u "Lowercase Upsilon" iA 
+\upsilon
+endsnippet 
+
+snippet ./U "Uppercase Upsilon" iA 
+\Upsilon
+endsnippet
+
+snippet ./ph "Lowercase Phi" iA 
+\phi
+endsnippet 
+
+snippet ./Ph "Uppercase Phi" iA 
+\Phi
+endsnippet 
+
+snippet ./c "Lowercase Chi" iA 
+\chi
+endsnippet 
+
+snippet ./C "Uppercase Chi" iA 
+\Chi
+endsnippet 
+
+snippet ./ps "Lowercase Psi" iA 
+\psi
+endsnippet 
+
+snippet ./Ps "Uppercase Psi" iA 
+\Psi
+endsnippet 
+
+snippet ./ome "Lowercase Omega" iA 
+\omega
+endsnippet 
+
+snippet ./Ome "Uppercase Omega" iA 
+\Omega
+endsnippet 
+
+# Topic Specific Commands -------------------------------------------------------------------------------
+
+# Topology -------------------------------------------------------------------------------
+snippet `(l|k)/top` "Topologies" A 
+``
+if ( m[1] == "l" ) {
+    rv = `\\mathbb{R}_{ \\ell }`;
+} else {
+    rv = `\\mathbb{R}_{ K }`;
+}
+``
+endsnippet
+
+snippet /ball "Ball" A 
+B_{ $1 }( $2 )$0
+endsnippet 
+
+snippet /itr "Interior" A 
+\\mathrm{Int} \\ 
+endsnippet
+
+snippet /clo "Closure" A 
+\\mathrm{Cl} \\ 
+endsnippet
+
+snippet /proj "Projection" A
+\\mathrm{proj}_{ $1 }$0
+endsnippet
