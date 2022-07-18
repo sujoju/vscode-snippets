@@ -299,6 +299,20 @@ rv = env
 ``
 endsnippet
 
+snippet `(s)?//mn` "Marginnote Environment" A 
+``
+let env = "";
+if ( m[1] == undefined ) {
+    env += `\\begin{marginnote}`;
+} else {
+    env += `\\begin{marginnote}[${snip.tabstop(1, '-0.5')}]`;
+}
+env += `\n\t${snip.tabstop(0)}`;
+env += `\n\\end{marginnote}`;
+rv = env
+``
+endsnippet
+
 # Math Commands ----------------------------------------------------------------
 # These snippets will always start with /
 # Vertically Spaced variants will include v
